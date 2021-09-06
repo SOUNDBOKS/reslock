@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "moduleResolution": "node",
+        "module": "CommonJS",
+        "outDir": "build/tsc",
+        "sourceMap": true,
+        "target": "es5", // Note: to avoid using babel
+        "types": [
+            "node",
+        ],
+        "strict": true,
+        "noEmit": false,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+    },
+    "exclude": [
+        "./node_modules/**/*"
+    ],
+    "include": [
+        "./src/**/*"
+    ]
+}
