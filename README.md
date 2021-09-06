@@ -37,6 +37,7 @@ Ask the server for a set of resources with optional filters. Note that the serve
   "locked_at": "2021-09-06T12:49:09.110Z",
   "resources": [...]
 }
+```
 
 The _id field serves as an unlock token, so store it!
 
