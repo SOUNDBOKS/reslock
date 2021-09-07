@@ -12,6 +12,7 @@
       "ts-results": "^3.3.0"
     },
     "scripts": {
+      "build": "yarn tsc",
       "release:github": "yarn publish --no-git-tag-version --registry=https://npm.pkg.github.com",
       "release:npm": "yarn publish --no-git-tag-version --access public"
     }

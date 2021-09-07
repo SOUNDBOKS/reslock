@@ -6,6 +6,7 @@
         "reslock-common"
     ],
     "scripts": {
+        "build:all": "yarn workspace @soundboks/reslock-common build && yarn workspace @soundboks/reslock-serv build",
         "docker:dev": "yarn docker:dev:down && yarn docker:dev:up && yarn docker:dev:logs",
         "docker:dev:up": "docker compose -f .docker/docker-compose.dev.yml up -d",
         "docker:dev:logs": "docker compose -f .docker/docker-compose.dev.yml logs reslock -f",
