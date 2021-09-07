@@ -2,12 +2,10 @@ FROM node:16
 
 WORKDIR /opt/reslock
 
-COPY package.json ./
-COPY yarn.lock ./
+COPY . .
 
 RUN yarn install
 
-COPY . .
-
+WORKDIR /opt/reslock/reslock-serv
 EXPOSE 4000
 CMD ["yarn", "dev:docker"]

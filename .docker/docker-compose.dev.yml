@@ -5,16 +5,14 @@ services:
     image: mongo:latest
     ports:
       - 27017:27017
-    volumes:
-      - db-data:/data/db
-      - mongo-config:/data/configdb
 
+    
   reslock:
     build:
       context: ../
       dockerfile: .docker/Dockerfile.dev
     volumes:
-      - ../src:/opt/reslock/src
+      - ../:/opt/reslock
     depends_on:
      - mongodb
     environment:
@@ -22,7 +20,3 @@ services:
       - MONGO_SERVER_URL=mongodb:27017
     ports:
       - 4000:4000
-
-volumes:
-  db-data:
-  mongo-config:

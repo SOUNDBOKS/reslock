@@ -1,0 +1,17 @@
+{
+    "name": "@soundboks/reslock-common",
+    "version": "1.0.0",
+    "main": "build/tsc/index.js",
+    "repository": "git@github.com:SOUNDBOKS/reslock.git",
+    "author": "Mark-Oliver Junge <root@nyrox.dev>",
+    "license": "MIT",
+    "devDependencies": {
+      "typescript": "^4.4.2"
+    },
+    "dependencies": {
+      "ts-results": "^3.3.0"
+    },
+    "scripts": {
+    }
+  }
+  

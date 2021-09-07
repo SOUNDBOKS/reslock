@@ -4,30 +4,13 @@ import { Db, ObjectId } from "mongodb"
 
 import { Result, Ok, Err } from "ts-results"
 import { useDatabase } from "./utils"
+import { IResource, LockedResource, UnlockToken, LockState } from "@soundboks/reslock-common"
 
-enum LockState {
-    Free = 0,
-    Reserved = 1,
-    Locked = 2,
-}
+
+
 
 const serviceLock = new Mutex()
 
-export interface IResource {
-    resource_set: string,
-    filters: object,
-}
-
-export interface LockedResource {
-    _id: ObjectId,
-    properties: object,
-}
-
-export interface UnlockToken {
-    _id: ObjectId,
-    resources: LockedResource[],
-    locked_at: Date,
-}
 
 export async function unlockAll() {
     const release = await serviceLock.acquire()
@@ -41,9 +24,9 @@ export async function unlockAll() {
     }
 }
 
-export async function requestResources(requested: IResource[]): Promise<Result<UnlockToken, IResource[]>> {
+export async function requestResources(requested: IResource[]): Promise<Result<UnlockToken<ObjectId>, IResource[]>> {
     const release = await serviceLock.acquire()
-    let selected: LockedResource[] = []
+    let selected: LockedResource<ObjectId>[] = []
     let missing: IResource[] = []
     const db = await useDatabase()
 
@@ -54,14 +37,14 @@ export async function requestResources(requested: IResource[]): Promise<Result<U
                 resource_set: find.resource_set,
                 lock_state: LockState.Free,
             }
-            if (find.filters && Object.keys(find.filters).length > 0) {
-                query.$and = Object.keys(find.filters).map(k => ({ ["properties." + k]: (find.filters as any)[k]}))
+            if (find.properties && Object.keys(find.properties).length > 0) {
+                query.$and = Object.keys(find.properties).map(k => ({ ["properties." + k]: (find.properties as any)[k]}))
         
             }
             let available = await db.collection("resources").findOneAndUpdate(query, { $set: { lock_state: LockState.Reserved }})
 
             if (!available.value) missing.push(find)
-            else selected.push(available.value as LockedResource)
+            else selected.push(available.value as LockedResource<ObjectId>)
         }
 
         if (missing.length > 0) return Err(missing)
@@ -94,7 +77,7 @@ export async function requestResources(requested: IResource[]): Promise<Result<U
 
 export async function unlockResourcesFromToken(tokenId: ObjectId) {
     const db = await useDatabase()
-    const { resources }: { resources: LockedResource[] } = (await db.collection("unlock_tokens").findOneAndDelete({ _id: tokenId })).value as any
+    const { resources }: { resources: LockedResource<ObjectId>[] } = (await db.collection("unlock_tokens").findOneAndDelete({ _id: tokenId })).value as any
 
     await db.collection("resources").updateMany({
         _id: { $in: resources.map(r => r._id) }
