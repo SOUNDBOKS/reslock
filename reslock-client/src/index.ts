@@ -7,21 +7,25 @@ import { AcquireError, CreateResourceError, DestroyResourceError, IResource, Loc
 import { Err, Ok, Result } from "ts-results"
 
 
+type LogFn = (...args: any[]) => void
+
 
 
 export default class ReslockClient {
     serverURI: string
+    logExtra: LogFn = () => {}
 
-    private constructor(serverURI: string) {
+    private constructor(serverURI: string, logExtra?: LogFn) {
         this.serverURI = serverURI
+        this.logExtra = logExtra || this.logExtra
     }
 
-    public static async connect(serverURI: string): Promise<ReslockClient> {
+    public static async connect(serverURI: string, logExtra?: LogFn): Promise<ReslockClient> {
         const { version, serviceName } = await (await fetch(serverURI + "/version")).json()
 
         if (serviceName !== "reslock") throw new Error("Expected a reslock server")
 
-        return new ReslockClient(serverURI)
+        return new ReslockClient(serverURI, logExtra)
     }
 
     public async acquire(resources: IResource[]): Promise<Result<UnlockToken<string>, IResource[]>> {
@@ -35,6 +39,7 @@ export default class ReslockClient {
             })).json()
 
         if ('error' in response) {
+            this.logExtra("[reslock-client] Error in acquire:response: ", response)
             switch (response.error) {
                 case "MISSING_RESOURCES":
                     return Err(response.missing_resources)
@@ -57,6 +62,7 @@ export default class ReslockClient {
                 }})).json()
 
         if ('error' in response) {
+            this.logExtra("[reslock-client] Error in unlock:response: ", response)
             throw new Error(response.error)
         } else {
             return;
@@ -74,6 +80,7 @@ export default class ReslockClient {
             })).json()
 
         if ('error' in response) {
+            this.logExtra("[reslock-client] Error in create_resource:response: ", response)
             switch (response.error) {
                 default:
                     throw new Error(response.error)
@@ -88,6 +95,7 @@ export default class ReslockClient {
             await (await fetch(this.serverURI + `/api/resource/${id}/destroy`, { method: "POST" })).json()
 
         if ('error' in response) {
+            this.logExtra("[reslock-client] Error in destroy_resource:response: ", response)
             throw new Error(response.error)
         } else {
             return;

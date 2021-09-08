@@ -1,6 +1,6 @@
 {
   "name": "@soundboks/reslock-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "build/tsc/index.js",
   "repository": "https://github.com/SOUNDBOKS/reslock",
   "author": "Mark-Oliver Junge <root@nyrox.dev>",
