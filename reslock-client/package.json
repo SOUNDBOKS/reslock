@@ -1,6 +1,6 @@
 {
   "name": "@soundboks/reslock-client",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "main": "build/tsc/index.js",
   "repository": "https://github.com/SOUNDBOKS/reslock",
   "author": "Mark-Oliver Junge <root@nyrox.dev>",
@@ -19,7 +19,8 @@
     "ts-results": "^3.3.0"
   },
   "scripts": {
-    "release:github": "yarn publish --no-git-tag-version --registry=https://npm.pkg.github.com",
-    "release:npm": "yarn publish --no-git-tag-version --access public"
+    "build": "yarn tsc",
+    "release:github": "yarn build && yarn publish --no-git-tag-version --registry=https://npm.pkg.github.com",
+    "release:npm": "yarn build && yarn publish --no-git-tag-version --access public"
   }
 }
