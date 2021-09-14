@@ -24,8 +24,9 @@
     "@soundboks/reslock-common": "1.0.0"
   },
   "scripts": {
+    "build": "yarn tsc",
     "dev:watch": "yarn nodemon src/main.ts",
     "dev:docker": "yarn dev:watch",
-    "prod:docker": "yarn tsc && NODE_ENV=production node build/tsc/main.js"
+    "prod:docker": "yarn tsc && NODE_ENV=production node build/tsc/src/main.js"
   }
 }

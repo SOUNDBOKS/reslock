@@ -5,6 +5,9 @@ WORKDIR /opt/reslock
 
 COPY . .
 RUN yarn install
+RUN yarn build:all
+
+
 
 WORKDIR /opt/reslock/reslock-serv
 EXPOSE 4000
