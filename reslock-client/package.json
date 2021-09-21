@@ -20,6 +20,7 @@
   },
   "scripts": {
     "build": "yarn tsc",
+    "test": "yarn mocha --require ts-node/register src/test/**test.ts",
     "release:github": "yarn build && yarn publish --no-git-tag-version --registry=https://npm.pkg.github.com",
     "release:npm": "yarn build && yarn publish --no-git-tag-version --access public"
   }

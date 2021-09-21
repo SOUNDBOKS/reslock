@@ -40,13 +40,6 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@soundboks/reslock-common@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@soundboks/reslock-common/-/reslock-common-1.0.0.tgz#46b758712f8b193ca3bac220198de57a946d70ff"
-  integrity sha512-BNFj6IEP2Fgpt8en4RsnN2cQvDuxWu2j61TiTTxM7Hs8cxIJyxOkVE/8RVK2d57IvtkqsSbbDmknfo//9onPfA==
-  dependencies:
-    ts-results "^3.3.0"
-
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-1.1.2.tgz#b1665e2c461a2cd92f4c1bbf50d5454de0d4b421"

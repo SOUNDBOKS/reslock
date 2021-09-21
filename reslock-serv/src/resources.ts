@@ -4,7 +4,7 @@ import { Db, ObjectId } from "mongodb"
 
 import { Result, Ok, Err } from "ts-results"
 import { useDatabase } from "./utils"
-import { IResource, LockedResource, UnlockToken, LockState } from "@soundboks/reslock-common"
+import { IResource, LockedResource, UnlockToken, LockState, ResourceAcquisitionOptions } from "@soundboks/reslock-common"
 
 
 
@@ -24,11 +24,18 @@ export async function unlockAll() {
     }
 }
 
-export async function requestResources(requested: IResource[]): Promise<Result<UnlockToken<ObjectId>, IResource[]>> {
+export async function requestResources(requested: IResource[], options: ResourceAcquisitionOptions): Promise<Result<UnlockToken<ObjectId>, IResource[]>> {
     const release = await serviceLock.acquire()
     let selected: LockedResource<ObjectId>[] = []
     let missing: IResource[] = []
     const db = await useDatabase()
+
+    // yes
+    const expire_date = options.expire_date ?
+        new Date(options.expire_date) : 
+        (options.expire_minutes ? 
+            new Date((new Date()).getTime() + 1000 * 60 * options.expire_minutes) : 
+            undefined)
 
     try {
         for(let i = 0; i < requested.length; i++) {
@@ -59,6 +66,8 @@ export async function requestResources(requested: IResource[]): Promise<Result<U
         const unlockToken = await db.collection("unlock_tokens").insertOne({
             resources: selected,
             locked_at: lockDate,
+            expire_date,
+            unlock_set: options.unlock_set,
         })
 
         return Ok({
@@ -84,4 +93,13 @@ export async function unlockResourcesFromToken(tokenId: ObjectId) {
     }, {
         $set: { lock_state: LockState.Free }
     })
+}
+
+export async function unlockResourcesFromSet(setId: string) {
+    const db = await useDatabase()
+    const tokens = await db.collection("unlock_tokens").find({ unlock_set: setId }).toArray()
+
+    await Promise.all(tokens.map(t => unlockResourcesFromToken(t._id)))
+
+    return tokens.length;
 }

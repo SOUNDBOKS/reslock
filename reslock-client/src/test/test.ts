@@ -58,4 +58,32 @@ describe("Reslock Client", async () => {
             assert.equal((await client.list_resources("test")).length, 0)
         })
     })
+
+    describe("Should create and lock 2 resources with an unlock_set and unlock both of them at once", () => {
+        it("should create the resources", async () => {
+            await client.create_resource("test", { })
+            await client.create_resource("test", { })
+        })
+
+        it("should lock both resources seperately", async () => {
+            (await client.acquire([{ resource_set: "test" }], { unlock_set: "test_set" })).unwrap();
+            (await client.acquire([{ resource_set: "test" }], { unlock_set: "test_set" })).unwrap();
+        })
+
+        it("should fail to lock another one", async () => {
+            await assert.rejects(async () => {
+                (await client.acquire([{ resource_set: "test" }], { unlock_set: "test_set" })).unwrap();
+            })
+        })
+
+        it("should unlock both at once", async () => {
+            const count = await client.unlock_set("test_set")
+            assert.equal(count, 2)
+        })
+
+        it("should be able to lock 2 times again", async () => {
+            (await client.acquire([{ resource_set: "test" }])).unwrap();
+            (await client.acquire([{ resource_set: "test" }])).unwrap();
+        })
+    })
 })

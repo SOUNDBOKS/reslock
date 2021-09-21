@@ -3,7 +3,7 @@
 import fetch from "cross-fetch"
 
 
-import { AcquireError, CreateResourceError, DestroyResourceError, IResource, LockedResource, UnlockError, UnlockToken } from "@soundboks/reslock-common"
+import { AcquireError, CreateResourceError, DestroyResourceError, IResource, LockedResource, ResourceAcquisitionOptions, UnlockError, UnlockToken } from "@soundboks/reslock-common"
 import { Err, Ok, Result } from "ts-results"
 
 
@@ -13,11 +13,11 @@ type LogFn = (...args: any[]) => void
 
 export default class ReslockClient {
     serverURI: string
-    logExtra: LogFn = () => {}
+    logExtra: LogFn = () => { }
 
     private constructor(serverURI: string, logExtra?: LogFn) {
         this.serverURI = serverURI
-        this.logExtra = logExtra || this.logExtra
+        this.logExtra = logExtra || this.logExtra
     }
 
     public static async connect(serverURI: string, logExtra?: LogFn): Promise<ReslockClient> {
@@ -28,11 +28,11 @@ export default class ReslockClient {
         return new ReslockClient(serverURI, logExtra)
     }
 
-    public async acquire(resources: IResource[]): Promise<Result<UnlockToken<string>, IResource[]>> {
+    public async acquire(resources: IResource[], options?: ResourceAcquisitionOptions): Promise<Result<UnlockToken<string>, IResource[]>> {
         const response: AcquireError | UnlockToken<string> =
             await (await fetch(this.serverURI + "/api/resources/acquire", {
                 method: "POST",
-                body: JSON.stringify({ resources }),
+                body: JSON.stringify({ resources, options }),
                 headers: {
                     "Content-Type": "application/json"
                 }
@@ -59,13 +59,32 @@ export default class ReslockClient {
                 body: JSON.stringify({ token }),
                 headers: {
                     "Content-Type": "application/json"
-                }})).json()
+                }
+            })).json()
 
         if ('error' in response) {
             this.logExtra("[reslock-client] Error in unlock:response: ", response)
             throw new Error(response.error)
         } else {
             return;
+        }
+    }
+
+    public async unlock_set(setId: string): Promise<number> {
+        const response: UnlockError | { ok: true, count: number } =
+            await (await fetch(this.serverURI + "/api/resources/unlock_set", {
+                method: "POST",
+                body: JSON.stringify({ unlock_set: setId }),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })).json()
+
+        if ('error' in response) {
+            this.logExtra("[reslock-client] Error in unlock_set:response: ", response)
+            throw new Error(response.error)
+        } else {
+            return response.count
         }
     }
 
