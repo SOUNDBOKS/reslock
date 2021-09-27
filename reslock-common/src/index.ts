@@ -47,6 +47,8 @@ export interface UnlockToken<IDType> {
     _id: IDType,
     resources: LockedResource<IDType>[],
     locked_at: Date,
+    unlock_set?: string;
+    expire_date?: IDType extends string ? string : Date;
 }
 
 export interface ResourceAcquisitionOptions {

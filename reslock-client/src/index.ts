@@ -3,7 +3,10 @@
 import fetch from "cross-fetch"
 
 
-import { AcquireError, CreateResourceError, DestroyResourceError, IResource, LockedResource, ResourceAcquisitionOptions, UnlockError, UnlockToken } from "@soundboks/reslock-common"
+import { AcquireError, CreateResourceError, DestroyResourceError, IResource, ResourceAcquisitionOptions, UnlockError, UnlockToken } from "@soundboks/reslock-common"
+
+export * from "@soundboks/reslock-common"
+
 import { Err, Ok, Result } from "ts-results"
 
 

@@ -7,7 +7,7 @@ import { UnlockToken } from "@soundboks/reslock-common"
 
 describe("Reslock Client", async () => {
     let client: ReslockClient;
-
+    
     it("should connect to the local reslock server", async () => {
         client = await ReslockClient.connect("http://localhost:4000")
     })
@@ -32,7 +32,11 @@ describe("Reslock Client", async () => {
         it("should acquire a lock on that resource", async () => {
             unlockToken = (await client.acquire([
                 { resource_set: "test" }
-            ])).unwrap()
+            ], {
+                expire_minutes: 60
+            })).unwrap()
+
+            assert.ok(unlockToken.expire_date)
         })
 
         it("should fail to grab another lock", async () => {
@@ -66,8 +70,11 @@ describe("Reslock Client", async () => {
         })
 
         it("should lock both resources seperately", async () => {
-            (await client.acquire([{ resource_set: "test" }], { unlock_set: "test_set" })).unwrap();
-            (await client.acquire([{ resource_set: "test" }], { unlock_set: "test_set" })).unwrap();
+            const a = (await client.acquire([{ resource_set: "test" }], { unlock_set: "test_set" })).unwrap();
+            const b = (await client.acquire([{ resource_set: "test" }], { unlock_set: "test_set" })).unwrap();
+        
+            assert.equal(a.unlock_set, "test_set")
+            assert.equal(a.unlock_set, b.unlock_set)
         })
 
         it("should fail to lock another one", async () => {

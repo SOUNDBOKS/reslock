@@ -73,6 +73,8 @@ export async function requestResources(requested: IResource[], options: Resource
         return Ok({
             resources: selected,
             locked_at: lockDate,
+            expire_date,
+            unlock_set: options.unlock_set,
             _id: unlockToken.insertedId,
         })
     } finally {
