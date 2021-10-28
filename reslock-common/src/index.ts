@@ -36,12 +36,14 @@ export type DestroyResourceError = ResourceDoesNotExistError | ResourceLockedErr
 export interface IResource {
     resource_set: string,
     properties?: object,
+    _id?: string,
 }
 
 export interface LockedResource<IDType> {
     _id: IDType,
     properties: object,
 }
+
 
 export interface UnlockToken<IDType> {
     _id: IDType,
@@ -56,3 +58,17 @@ export interface ResourceAcquisitionOptions {
     expire_date?: string;
     unlock_set?: string;
 }
+
+export interface ResourceHookAcquisitionOptions {
+    expire_minutes?: number;
+    expire_date?: string;
+    nonce?: string;
+    resource_options?: ResourceAcquisitionOptions;
+}
+
+export interface ResourceAcquisitionRequest {
+    resources: IResource[],
+    options?: ResourceAcquisitionOptions,
+}
+
+export type ApiResponse<T, E> = { ok: true, data: T } | E

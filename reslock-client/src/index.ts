@@ -3,7 +3,7 @@
 import fetch from "cross-fetch"
 
 
-import { AcquireError, CreateResourceError, DestroyResourceError, IResource, ResourceAcquisitionOptions, UnlockError, UnlockToken } from "@soundboks/reslock-common"
+import { AcquireError, ApiResponse, CreateResourceError, DestroyResourceError, IResource, ResourceAcquisitionOptions, UnlockError, UnlockToken } from "@soundboks/reslock-common"
 
 export * from "@soundboks/reslock-common"
 
@@ -24,7 +24,7 @@ export default class ReslockClient {
     }
 
     public static async connect(serverURI: string, logExtra?: LogFn): Promise<ReslockClient> {
-        const { version, serviceName } = await (await fetch(serverURI + "/version")).json()
+        const { data: { version, serviceName } } = await (await fetch(serverURI + "/api/version")).json()
 
         if (serviceName !== "reslock") throw new Error("Expected a reslock server")
 
@@ -32,7 +32,7 @@ export default class ReslockClient {
     }
 
     public async acquire(resources: IResource[], options?: ResourceAcquisitionOptions): Promise<Result<UnlockToken<string>, IResource[]>> {
-        const response: AcquireError | UnlockToken<string> =
+        const response: ApiResponse<UnlockToken<string>, AcquireError> =
             await (await fetch(this.serverURI + "/api/resources/acquire", {
                 method: "POST",
                 body: JSON.stringify({ resources, options }),
@@ -47,16 +47,16 @@ export default class ReslockClient {
                 case "MISSING_RESOURCES":
                     return Err(response.missing_resources)
                 default:
-                    throw new Error(response.error)
+                    throw new Error(JSON.stringify(response))
             }
         } else {
-            return Ok(response)
+            return Ok(response.data)
         }
     }
 
     public async unlock(unlockToken: UnlockToken<string> | string): Promise<void> {
         const token = typeof unlockToken === "string" ? unlockToken : unlockToken._id
-        const response: UnlockError | { ok: true } =
+        const response: ApiResponse<void, UnlockError> =
             await (await fetch(this.serverURI + "/api/resources/unlock", {
                 method: "POST",
                 body: JSON.stringify({ token }),
@@ -74,7 +74,7 @@ export default class ReslockClient {
     }
 
     public async unlock_set(setId: string): Promise<number> {
-        const response: UnlockError | { ok: true, count: number } =
+        const response: ApiResponse<{ count: number }, UnlockError> =
             await (await fetch(this.serverURI + "/api/resources/unlock_set", {
                 method: "POST",
                 body: JSON.stringify({ unlock_set: setId }),
@@ -87,12 +87,12 @@ export default class ReslockClient {
             this.logExtra("[reslock-client] Error in unlock_set:response: ", response)
             throw new Error(response.error)
         } else {
-            return response.count
+            return response.data.count
         }
     }
 
     public async create_resource(resource_set: string, properties: object): Promise<string> {
-        const response: CreateResourceError | { _id: string } =
+        const response: ApiResponse<{ _id: string }, CreateResourceError> =
             await (await fetch(this.serverURI + "/api/resource/create", {
                 method: "POST",
                 body: JSON.stringify({ resource_set, properties }),
@@ -108,13 +108,15 @@ export default class ReslockClient {
                     throw new Error(response.error)
             }
         } else {
-            return response._id
+            return response.data._id
         }
     }
 
     public async destroy_resource(id: string): Promise<void> {
-        const response: DestroyResourceError | { ok: true } =
-            await (await fetch(this.serverURI + `/api/resource/${id}/destroy`, { method: "POST" })).json()
+        const response: ApiResponse<void, DestroyResourceError> =
+            await (await fetch(this.serverURI + `/api/resource/${id}/destroy`, { method: "POST", headers: {
+                "Content-Type": "application/json"
+            } })).json()
 
         if ('error' in response) {
             this.logExtra("[reslock-client] Error in destroy_resource:response: ", response)
@@ -128,6 +130,6 @@ export default class ReslockClient {
         const endpoint = set ? `/api/resources/${set}/list` : "/api/resources/list"
         const response = await (await fetch(this.serverURI + endpoint)).json()
 
-        return response.resources
+        return response.data.resources
     }
 }

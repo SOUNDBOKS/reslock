@@ -14,10 +14,10 @@ describe("Reslock Client", async () => {
 
     it("should return an empty list of resources", async () => {
         const resources = await client.list_resources()
+        console.log(resources)
         assert.equal(resources.length, 0)
     })
 
-    
     describe("Create, lock, unlock and delete a resource", async () => {
         let resourceId: string;
         let unlockToken: UnlockToken<string>;
