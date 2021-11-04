@@ -5,31 +5,9 @@ import { requestResources, unlockResourcesFromSet, unlockResourcesFromToken } fr
 import { ObjectId } from "mongodb"
 import { useDatabase } from "../utils"
 
-type Handler<T> = (req: Express.Request) => Promise<T>
+import { ApiRouter, useBody, useParam } from "@soundboks/expresso"
 
-export function reject_non_json_post(req: Express.Request) {
-    if (req.method === "POST" && req.header("Content-Type") !== "application/json") {
-        throw new ReslockError("MISSING_CONTENT_TYPE", "POST requests must include the 'Content-Type: application/json' header")
-    }
-}
-
-export function endpoint<T>(handler: Handler<T>) {
-    return async (req: Express.Request, res: Express.Response) => {
-        try {
-            reject_non_json_post(req)
-            const ret = await handler(req)
-            res.send({ ok: true, data: ret })
-        } catch(e: any) {
-            console.log(e.error)
-            if (e instanceof ReslockError) {
-                res.send({ error: e.error, cause: e.cause, ...e.extra })
-            } else {
-                res.send({ error: "GENERIC", cause: e.toString() })
-            }
-        }
-    }
-}
-
+const apiRouter = new ApiRouter()
 
 class ReslockError extends Error {
     error: string
@@ -46,6 +24,8 @@ class ReslockError extends Error {
     }
 }
 
+
+
 function assert(val: any, error: string, cause?: string) {
     if (val) return;
 
@@ -53,25 +33,16 @@ function assert(val: any, error: string, cause?: string) {
 }
 
 
-export const ApiRouter = new class{
-    router = Express.Router()
-    get<T>(route: string, handler: Handler<T>) {
-        this.router.get(route, endpoint(handler))
-    }
-    post<T>(route: string, handler: Handler<T>) {
-        this.router.post(route, endpoint(handler))
-    }
-}
 
-ApiRouter.get("/version", async () => {
+apiRouter.get("/version", async () => {
     return {
         version,
         serviceName: "reslock"
     }
 })
 
-ApiRouter.post("/resources/acquire", async request => {
-    const { resources, options }: ResourceAcquisitionRequest = request.body
+apiRouter.post("/resources/acquire", async () => {
+    const { resources, options }: ResourceAcquisitionRequest = useBody()
 
     if (options?.expire_date && options?.expire_minutes) {
         throw new ReslockError("INVALID_OPTIONS", "Don't set expire_date and expire_minutes together")
@@ -87,21 +58,21 @@ ApiRouter.post("/resources/acquire", async request => {
     }
 })
 
-ApiRouter.post("/resources/unlock", async request => {
-    const { token }: { token: string } = request.body
+apiRouter.post("/resources/unlock", async () => {
+    const { token }: { token: string } = useBody()
 
     await unlockResourcesFromToken(new ObjectId(token))
 })
 
-ApiRouter.post("/resources/unlock_set", async request => {
-    const { unlock_set }: { unlock_set: string } = request.body
+apiRouter.post("/resources/unlock_set", async () => {
+    const { unlock_set }: { unlock_set: string } = useBody()
 
     const count = await unlockResourcesFromSet(unlock_set)
     return { count }
 })
 
-ApiRouter.post("/resource/create", async request => {
-    const { resource_set, properties }: IResource = request.body
+apiRouter.post("/resource/create", async () => {
+    const { resource_set, properties }: IResource = useBody()
 
     assert(typeof resource_set === "string", "INVALID_INPUT", "'resource_set' must be a string")
     assert(typeof properties === "object", "INVALID_INPUT", "'properties' must be an object")
@@ -116,31 +87,37 @@ ApiRouter.post("/resource/create", async request => {
     return { _id: inserted.insertedId }
 })
 
-ApiRouter.post("/resource/:id/destroy", async request => {
+apiRouter.post("/resource/:id/destroy", async () => {
+    const id = useParam("id")
+
     const db = await useDatabase()
     const resource = await db.collection("resources").findOne({
-        _id: new ObjectId(request.params.id)
+        _id: new ObjectId(id)
     })
 
     assert(resource, "RESOURCE_DOES_NOT_EXIST")
     assert(resource!.lock_state === LockState.Free, "RESOURCE_LOCKED")
 
     await db.collection("resources").deleteOne({
-        _id: new ObjectId(request.params.id)
+        _id: new ObjectId(id)
     })
 })
 
-ApiRouter.get("/resources/list", async request => {
+apiRouter.get("/resources/list", async () => {
     const db = await useDatabase()
     return { resources: await db.collection("resources").find().toArray() }
 })
 
-ApiRouter.get("/resources/:set/list", async request => {
-    assert(typeof request.params.set === "string", "INVALID_INPUT", "'set' must be a string")
+apiRouter.get("/resources/:set/list", async () => {
+    const set = useParam("set")
+
+    assert(typeof set === "string", "INVALID_INPUT", "'set' must be a string")
     const db = await useDatabase()
     return {
         resources: await db.collection("resources").find({
-            resource_set: request.params.set
+            resource_set: set
         }).toArray()
     }
 })
+
+export default apiRouter

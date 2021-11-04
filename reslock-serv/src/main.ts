@@ -6,7 +6,7 @@ import { useDatabase } from "./utils"
 import morgan from "morgan"
 import { unlockResourcesFromToken } from "./resources"
 
-import { ApiRouter } from "./server"
+import apiRouter from "./server"
 
 async function initialize_service() {
     const db = await useDatabase()
@@ -45,7 +45,7 @@ async function initialize_maintenance_routine() {
 const serv = express()  
     .use(express.json())
     .use(morgan("tiny"))
-    .use("/api", ApiRouter.router)
+    .use("/api", apiRouter.router)
 
 initialize_maintenance_routine()
 

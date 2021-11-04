@@ -105,7 +105,7 @@ export default class ReslockClient {
             this.logExtra("[reslock-client] Error in create_resource:response: ", response)
             switch (response.error) {
                 default:
-                    throw new Error(response.error)
+                    throw new Error(response.toString())
             }
         } else {
             return response.data._id

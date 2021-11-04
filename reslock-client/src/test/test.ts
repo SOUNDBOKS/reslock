@@ -9,7 +9,7 @@ describe("Reslock Client", async () => {
     let client: ReslockClient;
     
     it("should connect to the local reslock server", async () => {
-        client = await ReslockClient.connect("http://localhost:4000")
+        client = await ReslockClient.connect("http://localhost:4000", console.info)
     })
 
     it("should return an empty list of resources", async () => {
