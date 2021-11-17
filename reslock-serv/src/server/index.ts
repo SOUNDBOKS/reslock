@@ -111,7 +111,6 @@ apiRouter.get("/resources/list", async () => {
 apiRouter.get("/resources/:set/list", async () => {
     const set = useParam("set")
 
-    assert(typeof set === "string", "INVALID_INPUT", "'set' must be a string")
     const db = await useDatabase()
     return {
         resources: await db.collection("resources").find({

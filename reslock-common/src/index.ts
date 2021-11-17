@@ -35,7 +35,7 @@ export type DestroyResourceError = ResourceDoesNotExistError | ResourceLockedErr
 
 export interface IResource {
     resource_set: string,
-    properties?: object,
+    properties?: Record<string, any>,
     _id?: string,
 }
 
