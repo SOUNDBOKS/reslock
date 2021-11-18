@@ -88,8 +88,14 @@ export async function requestResources(requested: IResource[], options: Resource
 
 export async function unlockResourcesFromToken(tokenId: ObjectId) {
     const db = await useDatabase()
-    const { resources }: { resources: LockedResource<ObjectId>[] } = (await db.collection("unlock_tokens").findOneAndDelete({ _id: tokenId })).value as any
+    const token = (await db.collection("unlock_tokens").findOneAndDelete({ _id: tokenId }))
 
+    if (!token.value) {
+        throw new Error("TokenId is invalid")
+    }
+
+    const { resources }: { resources: LockedResource<ObjectId>[] } = token.value as any
+    
     await db.collection("resources").updateMany({
         _id: { $in: resources.map(r => r._id) }
     }, {
