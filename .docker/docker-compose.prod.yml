@@ -8,7 +8,8 @@ services:
     volumes:
       - db-data:/data/db
       - mongo-config:/data/configdb
-  
+    restart: always
+
   reslock:
     build:
       context: ../
@@ -20,6 +21,7 @@ services:
       - MONGO_SERVER_URL=mongodb:27017/
     ports:
       - 4000:4000
+    restart: always
 
 volumes:
   db-data:

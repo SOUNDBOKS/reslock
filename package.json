@@ -12,6 +12,7 @@
         "docker:dev:up": "docker compose -f .docker/docker-compose.dev.yml up -d",
         "docker:dev:logs": "docker compose -f .docker/docker-compose.dev.yml logs reslock -f",
         "docker:dev:down": "docker compose -f .docker/docker-compose.dev.yml down",
-        "docker:prod": "docker compose -f .docker/docker-compose.prod.yml up --build"
+        "docker:prod": "docker compose -f .docker/docker-compose.prod.yml up --build -d",
+        "docker:prod:logs": "docker compose -f .docker/docker-compose.prod.yml logs reslock -f"
     }
 }
