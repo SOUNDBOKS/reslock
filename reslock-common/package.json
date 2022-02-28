@@ -14,6 +14,7 @@
   "scripts": {
     "build": "yarn tsc",
     "release:github": "yarn publish --no-git-tag-version --registry=https://npm.pkg.github.com",
-    "release:npm": "yarn publish --no-git-tag-version --access public"
+    "release:npm": "yarn publish --no-git-tag-version --access public",
+    "release": "yarn release:github && yarn release:npm"
   }
 }

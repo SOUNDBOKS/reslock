@@ -4,6 +4,7 @@ export enum LockState {
     Free = 0,
     Reserved = 1,
     Locked = 2,
+    Disabled = 10,
 }
 
 export interface MissingResourcesError {
@@ -28,10 +29,17 @@ export interface InvalidOptionsError {
     cause?: string;
 }
 
+export interface ResourceAlreadyEnabledError {
+    error: "RESOURCE_ALREADY_ENABLED"
+}
+
+
 export type AcquireError = MissingResourcesError | InvalidOptionsError
 export type UnlockError = UnlockTokenDoesNotExistError
 export type CreateResourceError = { error: any }
 export type DestroyResourceError = ResourceDoesNotExistError | ResourceLockedError
+export type DisableResourceError = ResourceDoesNotExistError | ResourceLockedError
+export type EnableResourceError = ResourceDoesNotExistError | ResourceAlreadyEnabledError
 
 export interface IResource {
     resource_set: string,
@@ -71,4 +79,4 @@ export interface ResourceAcquisitionRequest {
     options?: ResourceAcquisitionOptions,
 }
 
-export type ApiResponse<T, E> = { ok: true, data: T } | E
+export type ApiResponse<T, E> = { ok: true, data: T } | E

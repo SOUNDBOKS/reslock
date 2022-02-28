@@ -63,6 +63,46 @@ describe("Reslock Client", async () => {
         })
     })
 
+    describe("Disabled resources", async () => {
+        let resourceId: string;
+        it("should create a regular resource", async () => {
+            resourceId = await client.create_resource("test", {})
+        })
+
+        let unlockToken: UnlockToken<string>;
+        it("should lock the resource", async () => {
+            unlockToken = (await client.acquire([{ resource_set: "test" }])).unwrap()
+        })
+
+        it("should fail to disable the resource, while it is locked", async () => {
+            await assert.rejects(() => client.disable_resource(resourceId))
+        })
+
+        it("should unlock the resource", async () => {
+            await client.unlock(unlockToken)
+        })
+
+        it("should disable the resource", async () => (
+            await client.disable_resource(resourceId)
+        ))
+
+        it("should fail to acquire the resource, while it's disabled", async () => {
+            await assert.rejects(async () => {
+                (await client.acquire([{ resource_set: "test" }])).unwrap()
+            })
+        })
+
+        it("should enable the resource", async () => {
+            await client.enable_resource(resourceId)
+        })
+
+        it("should lock the resource", async () => {
+            unlockToken = (await client.acquire([{ resource_set: "test" }])).unwrap()
+            await client.unlock(unlockToken)
+            await client.destroy_resource(resourceId)
+        })
+    })
+
     describe("Should create and lock 2 resources with an unlock_set and unlock both of them at once", () => {
         it("should create the resources", async () => {
             await client.create_resource("test", { })

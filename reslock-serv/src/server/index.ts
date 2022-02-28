@@ -87,6 +87,53 @@ apiRouter.post("/resource/create", async () => {
     return { _id: inserted.insertedId }
 })
 
+
+apiRouter.post("/resource/:id/disable", async () => {
+    const db = await useDatabase()
+    
+    const resource = await db.collection("resources").findOne({
+        _id: new ObjectId(useParam("id"))
+    })
+
+    assert(resource, "RESOURCE_DOES_NOT_EXIST")
+    if (resource!.lock_state === LockState.Disabled) return;
+    assert(resource!.lock_state === LockState.Free, "RESOURCE_LOCKED")
+
+
+    const result = await db.collection("resources").updateOne({
+        _id: new ObjectId(useParam("id")),
+        // Atomicity: Don't disable the item if it got locked by another request
+        lock_state: LockState.Free,
+    }, {
+        $set: {
+            lock_state: LockState.Disabled,
+        }
+    })
+
+    if (result.modifiedCount !== 1) throw new Error("Update failed. Expected one object to be modified")
+})
+
+apiRouter.post("/resource/:id/enable", async () => {
+    const db = await useDatabase()
+
+    const resource = await db.collection("resources").findOne({
+        _id: new ObjectId(useParam("id")),
+    })
+
+    assert(resource, "RESOURCE_DOES_NOT_EXIST")
+    assert(resource!.lock_state === LockState.Disabled, "RESOURCE_ALREADY_ENABLED")
+
+    const result = await db.collection("resources").updateOne({
+        _id: new ObjectId(useParam("id")),
+        // Atomicity: Don't enable the item if it got modified by another request
+        lock_state: LockState.Disabled,
+    }, {
+        $set: { lock_state: LockState.Free }
+    })
+
+    if (result.modifiedCount !== 1) throw new Error("Update failed. Expected one object to be modified")
+})
+
 apiRouter.post("/resource/:id/destroy", async () => {
     const id = useParam("id")
 
